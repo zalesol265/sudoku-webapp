@@ -1,0 +1,98 @@
+/* src/App.css */
+
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #ecf0f1; /* Light background for contrast */
+  color: #2c3e50; /* Dark text color for readability */
+}
+
+h1 {
+  color: #3498db; /* Theme color */
+}
+
+/* src/components/SudokuGrid.css */
+
+.grid {
+    display: grid;
+    grid-template-rows: repeat(9, 1fr);
+    width: fit-content;
+    margin: 0 auto;
+    border: 2px solid #3498db; /* Theme color border */
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+}
+
+.cell {
+  border: 1px solid #2c3e50; /* Dark border for contrast */
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-size: xx-large;
+}
+
+.cell:nth-child(3n) {
+  border-right: 3px solid #2c3e50;
+}
+.cell:nth-child(3n+1) {
+  border-left: 3px solid #2c3e50;
+}
+.row:nth-child(3n) .cell {
+  border-bottom: 3px solid #2c3e50;
+}
+.row:nth-child(3n+1) .cell {
+  border-top: 3px solid #2c3e50;
+}
+
+.highlighted {
+  border: 6px solid #bb6ed6ed !important;  
+}
+
+.buttons, .colors {
+  margin-top: 20px;
+}
+
+button {
+  margin: 5px;
+  background-color: #3498db; /* Theme color */
+  color: #fff;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  box-sizing: border-box;
+}
+
+button:hover {
+  background-color: #2980b9; /* Darker shade on hover */
+}
+
+.colors button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.digit-selector {
+  height: 40px;
+  width: 40px;
+  font-size: large;
+  font-weight: bold;
+}
+
+.cell.pre-generated {
+  background-color: rgba(206, 231, 245, 0.483); /* or any color you prefer */
+  font-weight: bold;
+}
