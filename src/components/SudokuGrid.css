@@ -96,3 +96,12 @@ button:hover {
   background-color: rgba(206, 231, 245, 0.483); /* or any color you prefer */
   font-weight: bold;
 }
+
+.cell.duplicate {
+  color: rgb(255, 0, 0);
+}
+
+.cell {
+  /* Ensure the default text color is black */
+  color: black;
+}
