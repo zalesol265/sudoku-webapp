@@ -5,6 +5,8 @@ import {checkForDuplicates} from '../services/validation';
 
 const predefinedColors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'cyan', 'magenta'];
 
+const baseUrl = "http://127.0.0.1:80";
+
 const SudokuGrid = () => {
   const initialGrid = Array(9).fill().map(() => Array(9).fill({ value: null, isPreGenerated: false }));
   const [grid, setGrid] = useState(initialGrid);
@@ -82,7 +84,7 @@ const SudokuGrid = () => {
   };
   
   const generatePuzzle = (difficulty = 'Easy') => {
-    const url = 'http://127.0.0.1:80/generate?difficulty=' + difficulty;
+    const url = baseUrl + '/generate?difficulty=' + difficulty;
     fetch(url)
       .then(response => {
         if (!response.ok) {
@@ -102,7 +104,7 @@ const SudokuGrid = () => {
   };
   
   const solvePuzzle = () => {
-    axios.post('http://127.0.0.1:80/solve', { puzzle: grid.map(row => row.map(cell => cell.value)) })
+    axios.post(baseUrl + '/solve', { puzzle: grid.map(row => row.map(cell => cell.value)) })
       .then(response => {
         const solvedGrid = response.data.map((row, rowIndex) =>
           row.map((cell, colIndex) => ({
@@ -119,7 +121,18 @@ const SudokuGrid = () => {
   };
 
   const getCellCandidates = () => {
-    axios.post('http://127.0.0.1:80/candidates', { puzzle: grid.map(row => row.map(cell => cell.value)) })
+    axios.post(baseUrl + '/candidates', { puzzle: grid.map(row => row.map(cell => cell.value)) })
+      .then(response => {
+        const candidates = response.data
+        setCandidates(candidates);
+      })
+      .catch(error => {
+        console.error("There was an error solving the puzzle!", error);
+      });
+  };
+
+  const getSoleCellCandidates = () => {
+    axios.post(baseUrl + '/soleCandidates', { puzzle: grid.map(row => row.map(cell => cell.value)) })
       .then(response => {
         const candidates = response.data
         setCandidates(candidates);
@@ -130,66 +143,74 @@ const SudokuGrid = () => {
   };
 
   return (
-    <div>
-      <h1>Sudoku Solver</h1>
-      <div className="candidates">
-        {candidates.map((box, index) => (
-          <div key={index} className="box-candidates">
-            <h3>Box {(box.box_row * 3) + (box.box_col + 1) }</h3>
-            <ul>
-              {Object.entries(box.candidates).map(([cellKey, cell], cellIndex) => (
-                <li key={cellIndex}>
-                  Cell {(cell.row * 3) + (cell.col + 1)}: [{Array.isArray(cell.candidates) ? cell.candidates.join(', ') : ''}]
-                </li>
+    <div className="sudoku-container">
+      <div className="left-column">
+        <div className="candidates">
+          {candidates.map((box, index) => (
+            <div key={index} className="box-candidates">
+              {/* <ul> */}
+              <h4>Box {(box.box_row * 3) + (box.box_col + 1)}</h4>
+                {Object.entries(box.candidates).map(([cellKey, cell], cellIndex) => (              
+                  <p key={cellIndex}>
+                    Cell {(((cell.row )%3)*3) +((cell.col%3)+1)}: [{Array.isArray(cell.candidates) ? cell.candidates.join(', ') : ''}]
+                  </p>
+                ))}
+              {/* </ul> */}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className='middle-column'>
+        <div className="grid">
+          {grid.map((row, rowIndex) => (
+            <div key={rowIndex} className="row">
+              {row.map((cell, colIndex) => (
+                <div
+                  key={colIndex}
+                  className={`cell ${selectedCell.row === rowIndex && selectedCell.col === colIndex ? 'highlighted' : ''} ${cell.isPreGenerated ? 'pre-generated' : ''} ${cell.isDuplicate ? 'duplicate' : ''}`}
+                  style={{ backgroundColor: getColor(rowIndex, colIndex) }}
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
+                >
+                  {cell.value || ''}
+                </div>
               ))}
-            </ul>
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
 
-
-      <div className="grid">
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className="row">
-            {row.map((cell, colIndex) => (
-              <div
-                key={colIndex}
-                className={`cell ${selectedCell.row === rowIndex && selectedCell.col === colIndex ? 'highlighted' : ''} ${cell.isPreGenerated ? 'pre-generated' : ''} ${cell.isDuplicate ? 'duplicate' : ''}`}
-                style={{ backgroundColor: getColor(rowIndex, colIndex) }}
-                onClick={() => handleCellClick(rowIndex, colIndex)}
-              >
-                {cell.value || ''}
-              </div>
-            ))}
-          </div>
-        ))}
+      {/* Buttons Section (Right Third) */}
+      <div className="buttons-and-colors">
+        <div className="buttons">
+          {Array.from({ length: 9 }, (_, i) => i + 1).map(num => (
+            <button
+              key={num}
+              className={`digit-selector ${selectedDigit === num ? 'selected' : ''}`}
+              onClick={() => inputDigit(num)}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
+        <div className="colors">
+          {predefinedColors.map(color => (
+            <button
+              key={color}
+              className={`color-selector ${selectedColor === color ? 'selected' : ''}`}
+              style={{ backgroundColor: color }}
+              onClick={() => selectColor(color)}
+            />
+          ))}
+        </div>
+        <div className="bottom-buttons">
+          <button onClick={solvePuzzle}>Solve</button>
+          <button onClick={() => generatePuzzle('Easy')}>Generate Easy</button>
+          <button onClick={() => generatePuzzle('Medium')}>Generate Medium</button>
+          <button onClick={() => generatePuzzle('Hard')}>Generate Hard</button>
+          <button onClick={getSoleCellCandidates}>Candidates</button>
+        </div>
       </div>
-      <div className="buttons">
-        {Array.from({ length: 9 }, (_, i) => i + 1).map(num => (
-          <button 
-            key={num} 
-            className={`digit-selector ${selectedDigit === num ? 'selected' : ''}`} 
-            onClick={() => inputDigit(num)}
-          >
-            {num}
-          </button>
-        ))}
-      </div>
-      <div className="colors">
-        {predefinedColors.map(color => (
-          <button 
-            key={color} 
-            className={`color-selector ${selectedColor === color ? 'selected' : ''}`} 
-            style={{ backgroundColor: color }} 
-            onClick={() => selectColor(color)} 
-          />
-        ))}
-      </div>
-      <button onClick={solvePuzzle}>Solve</button>
-      <button onClick={() => generatePuzzle('Easy')}>Generate Easy</button>
-      <button onClick={() => generatePuzzle('Medium')}>Generate Medium</button>
-      <button onClick={() => generatePuzzle('Hard')}>Generate Hard</button>
-      <button onClick={getCellCandidates}>Candidates</button>
     </div>
   );
 };
