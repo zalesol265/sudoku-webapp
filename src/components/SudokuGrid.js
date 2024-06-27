@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './SudokuGrid.css';
-import {checkForDuplicates} from '../services/validation';
+import { checkForDuplicates } from '../services/validation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPuzzlePiece, faEraser, faPalette, faPencil } from '@fortawesome/free-solid-svg-icons';
 
 const predefinedColors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'cyan', 'magenta'];
-
 const baseUrl = "http://127.0.0.1:80";
 
 const SudokuGrid = () => {
@@ -15,6 +16,7 @@ const SudokuGrid = () => {
   const [selectedDigit, setSelectedDigit] = useState(null);
   const [cellColors, setCellColors] = useState(Array(9).fill(Array(9).fill(null)));
   const [candidates, setCandidates] = useState([]);
+  const [view, setView] = useState('numbers'); // Add state for toggle view
 
   const selectCell = (row, col) => {
     if (selectedCell.row === row && selectedCell.col === col) {
@@ -33,7 +35,7 @@ const SudokuGrid = () => {
       setGrid(checkForDuplicates(newGrid));
     }
   }, [selectedCell, grid]);
-  
+
   const clearCell = useCallback(() => {
     if (selectedCell.row !== null && selectedCell.col !== null && !grid[selectedCell.row][selectedCell.col].isPreGenerated) {
       const newGrid = [...grid];
@@ -82,7 +84,7 @@ const SudokuGrid = () => {
   const handleCellClick = (row, col) => {
     selectCell(row, col);
   };
-  
+
   const generatePuzzle = (difficulty = 'Easy') => {
     const url = baseUrl + '/generate?difficulty=' + difficulty;
     fetch(url)
@@ -102,7 +104,7 @@ const SudokuGrid = () => {
         console.error("There was an error generating the puzzle!", error);
       });
   };
-  
+
   const solvePuzzle = () => {
     axios.post(baseUrl + '/solve', { puzzle: grid.map(row => row.map(cell => cell.value)) })
       .then(response => {
@@ -148,14 +150,12 @@ const SudokuGrid = () => {
         <div className="candidates">
           {candidates.map((box, index) => (
             <div key={index} className="box-candidates">
-              {/* <ul> */}
               <h4>Box {(box.box_row * 3) + (box.box_col + 1)}</h4>
                 {Object.entries(box.candidates).map(([cellKey, cell], cellIndex) => (              
                   <p key={cellIndex}>
                     Cell {(((cell.row )%3)*3) +((cell.col%3)+1)}: [{Array.isArray(cell.candidates) ? cell.candidates.join(', ') : ''}]
                   </p>
                 ))}
-              {/* </ul> */}
             </div>
           ))}
         </div>
@@ -182,28 +182,56 @@ const SudokuGrid = () => {
 
       {/* Buttons Section (Right Third) */}
       <div className="buttons-and-colors">
+        {/* Tabs */}
+        <div className="tabs">
+          <button
+            className={`tab ${view === 'numbers' ? 'active' : ''}`}
+            onClick={() => setView('numbers')}
+          >
+            <span className="number-button">123</span>
+          </button>
+          <button
+            className={`tab ${view === 'third' ? 'active' : ''}`}
+            onClick={() => setView('third')}
+          >
+            <FontAwesomeIcon icon={faPencil} />
+          </button>
+          <button
+            className={`tab ${view === 'colors' ? 'active' : ''}`}
+            onClick={() => setView('colors')}
+          >
+            <FontAwesomeIcon icon={faPalette} /> 
+          </button>
+        </div>
+
+        {view === 'numbers' && (
+          <div className="buttons">
+            {Array.from({ length: 9 }, (_, i) => i + 1).map(num => (
+              <button
+                key={num}
+                onClick={() => inputDigit(num)}
+                className="digit-selector"
+              >
+                {num}
+              </button>
+            ))}
+            <button onClick={clearCell}><FontAwesomeIcon icon={faEraser} /></button>
+          </div>
+        )}
+
+        {view === 'colors' && (
+          <div className="colors">
+            {predefinedColors.map((color, index) => (
+              <button
+                key={index}
+                onClick={() => selectColor(color)}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="buttons">
-          {Array.from({ length: 9 }, (_, i) => i + 1).map(num => (
-            <button
-              key={num}
-              className={`digit-selector ${selectedDigit === num ? 'selected' : ''}`}
-              onClick={() => inputDigit(num)}
-            >
-              {num}
-            </button>
-          ))}
-        </div>
-        <div className="colors">
-          {predefinedColors.map(color => (
-            <button
-              key={color}
-              className={`color-selector ${selectedColor === color ? 'selected' : ''}`}
-              style={{ backgroundColor: color }}
-              onClick={() => selectColor(color)}
-            />
-          ))}
-        </div>
-        <div className="bottom-buttons">
           <button onClick={solvePuzzle}>Solve</button>
           <button onClick={() => generatePuzzle('Easy')}>Generate Easy</button>
           <button onClick={() => generatePuzzle('Medium')}>Generate Medium</button>
