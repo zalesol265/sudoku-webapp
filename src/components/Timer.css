@@ -1,0 +1,23 @@
+.left-controls{
+    float: left;
+}
+
+.right-controls{
+    float: right;
+}
+
+.timer{
+    float:left;
+    margin-top: 40px;
+}
+
+.timer-and-buttons {
+    button {
+        background-color: #ffffff00;
+        margin-top:30px;
+    }
+
+    svg {
+        color:rgb(229, 192, 30);
+    }
+}

@@ -3,7 +3,8 @@ import axios from 'axios';
 import './SudokuGrid.css';
 import { checkForDuplicates } from '../services/validation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPuzzlePiece, faEraser, faPalette, faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faEraser, faPalette, faPencil } from '@fortawesome/free-solid-svg-icons';
+import Timer from './Timer'; 
 
 const predefinedColors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'cyan', 'magenta'];
 const baseUrl = "http://127.0.0.1:80";
@@ -162,6 +163,7 @@ const SudokuGrid = () => {
       </div>
 
       <div className='middle-column'>
+      <Timer />
         <div className="grid">
           {grid.map((row, rowIndex) => (
             <div key={rowIndex} className="row">
