@@ -4,7 +4,8 @@ import './SudokuGrid.css';
 import { checkForDuplicates } from '../services/validation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEraser, faPalette, faPencil } from '@fortawesome/free-solid-svg-icons';
-import Timer from './Timer'; 
+import Timer from './Timer';
+import Hints from './Hints'; // Import the Hints component
 
 const predefinedColors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'cyan', 'magenta'];
 const baseUrl = "http://127.0.0.1:80";
@@ -148,22 +149,12 @@ const SudokuGrid = () => {
   return (
     <div className="sudoku-container">
       <div className="left-column">
-        <div className="candidates">
-          {candidates.map((box, index) => (
-            <div key={index} className="box-candidates">
-              <h4>Box {(box.box_row * 3) + (box.box_col + 1)}</h4>
-                {Object.entries(box.candidates).map(([cellKey, cell], cellIndex) => (              
-                  <p key={cellIndex}>
-                    Cell {(((cell.row )%3)*3) +((cell.col%3)+1)}: [{Array.isArray(cell.candidates) ? cell.candidates.join(', ') : ''}]
-                  </p>
-                ))}
-            </div>
-          ))}
-        </div>
+        <button onClick={getSoleCellCandidates}>Candidates</button>
+        <Hints candidates={candidates} /> {/* Use the Hints component */}
       </div>
 
       <div className='middle-column'>
-      <Timer />
+        <Timer />
         <div className="grid">
           {grid.map((row, rowIndex) => (
             <div key={rowIndex} className="row">
@@ -179,6 +170,13 @@ const SudokuGrid = () => {
               ))}
             </div>
           ))}
+        </div>
+        <div className="buttons">
+          <button onClick={solvePuzzle}>Solve</button>
+          <button onClick={() => generatePuzzle('Easy')}>Generate Easy</button>
+          <button onClick={() => generatePuzzle('Medium')}>Generate Medium</button>
+          <button onClick={() => generatePuzzle('Hard')}>Generate Hard</button>
+          
         </div>
       </div>
 
@@ -232,14 +230,6 @@ const SudokuGrid = () => {
             ))}
           </div>
         )}
-
-        <div className="buttons">
-          <button onClick={solvePuzzle}>Solve</button>
-          <button onClick={() => generatePuzzle('Easy')}>Generate Easy</button>
-          <button onClick={() => generatePuzzle('Medium')}>Generate Medium</button>
-          <button onClick={() => generatePuzzle('Hard')}>Generate Hard</button>
-          <button onClick={getSoleCellCandidates}>Candidates</button>
-        </div>
       </div>
     </div>
   );
