@@ -4,8 +4,8 @@ import './SudokuGrid.css';
 import { checkForDuplicates } from '../services/validation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEraser, faPalette, faPencil } from '@fortawesome/free-solid-svg-icons';
-import Timer from './Timer';
-import Hints from './Hints'; // Import the Hints component
+import Timer from './Timer'; 
+import Hints from './Hints';
 
 const predefinedColors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'cyan', 'magenta'];
 const baseUrl = "http://127.0.0.1:80";
@@ -18,7 +18,9 @@ const SudokuGrid = () => {
   const [selectedDigit, setSelectedDigit] = useState(null);
   const [cellColors, setCellColors] = useState(Array(9).fill(Array(9).fill(null)));
   const [candidates, setCandidates] = useState([]);
+  const [candidateCells, setCandidateCells] = useState(Array(9).fill(Array(9).fill(false)));
   const [view, setView] = useState('numbers'); // Add state for toggle view
+  const [showCandidates, setShowCandidates] = useState(false); // State for toggle
 
   const selectCell = (row, col) => {
     if (selectedCell.row === row && selectedCell.col === col) {
@@ -83,6 +85,17 @@ const SudokuGrid = () => {
     }
   };
 
+  const getHints = (row, col) => {
+    return candidateCells[row][col];
+  }
+
+  const setCandidate = (row, col) => {
+    const newCandidate = [...candidateCells];
+    newCandidate[row] = [...newCandidate[row]];
+    newCandidate[row][col] = newCandidate[row][col] === true;
+    setCandidateCells(newCandidate);
+  }
+
   const handleCellClick = (row, col) => {
     selectCell(row, col);
   };
@@ -140,6 +153,11 @@ const SudokuGrid = () => {
       .then(response => {
         const candidates = response.data
         setCandidates(candidates);
+        candidates.map((box) => {
+          box.candidates.map((cell) => {
+            setCandidate(cell.Row, cell.Col)
+          });
+        });
       })
       .catch(error => {
         console.error("There was an error solving the puzzle!", error);
@@ -149,8 +167,11 @@ const SudokuGrid = () => {
   return (
     <div className="sudoku-container">
       <div className="left-column">
-        <button onClick={getSoleCellCandidates}>Candidates</button>
-        <Hints candidates={candidates} /> {/* Use the Hints component */}
+        <button onClick={getSoleCellCandidates}>Get Candidates</button>
+        {/* <button onClick={() => setShowCandidates(!showCandidates)}>
+          {showCandidates ? 'Hide Candidates' : 'Show Candidates'}
+        </button> */}
+        <Hints candidates={candidates} />
       </div>
 
       <div className='middle-column'>
@@ -162,7 +183,7 @@ const SudokuGrid = () => {
                 <div
                   key={colIndex}
                   className={`cell ${selectedCell.row === rowIndex && selectedCell.col === colIndex ? 'highlighted' : ''} ${cell.isPreGenerated ? 'pre-generated' : ''} ${cell.isDuplicate ? 'duplicate' : ''}`}
-                  style={{ backgroundColor: getColor(rowIndex, colIndex) }}
+                  style={{ backgroundColor: getHints(rowIndex, colIndex) || getColor(rowIndex, colIndex) }}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                 >
                   {cell.value || ''}
@@ -176,7 +197,6 @@ const SudokuGrid = () => {
           <button onClick={() => generatePuzzle('Easy')}>Generate Easy</button>
           <button onClick={() => generatePuzzle('Medium')}>Generate Medium</button>
           <button onClick={() => generatePuzzle('Hard')}>Generate Hard</button>
-          
         </div>
       </div>
 
